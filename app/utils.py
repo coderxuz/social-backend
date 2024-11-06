@@ -1,9 +1,10 @@
-from fastapi import HTTPException, status, Request, Depends
+from fastapi import HTTPException, status, Request, Depends, UploadFile
 from app.database import get_db
 from sqlalchemy.orm import Session
-from app.models import User
+from app.models import User, Post, Like, Comment
 from typing import Optional, Dict, Any
 from jose import jwt, JWTError
+import os
 
 def check_user_by_email(
     user_email: str, db: Session = Depends(get_db)
@@ -46,3 +47,39 @@ def verify_token(request: Request)->Optional[Dict[str, Any]]:
         return payload
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='wrong or expired token')
+
+async def save_image(file:UploadFile)->Optional[str]:
+    save_folder = 'images'
+    image_types = ['image/jpg','image/png','image/gif', 'image/jpeg']
+    if file.content_type not in image_types:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'image type is incorrect {UploadFile.content_type}')
+    
+    os.makedirs(save_folder, exist_ok=True)
+    file_path = os.path.join(save_folder, file.filename)
+    
+    with open(file_path, 'wb') as f:
+        f.write(await file.read())
+    return file_path
+
+async def get_user_from_token(request: Request, database:Session = Depends(get_db)):
+    payload = verify_token(request)
+    username = payload['sub']
+    db_user = check_user_by_username(user_username=username, db=database)
+    return db_user
+
+async def like_post(user_id:int,post_id:int, db: Session = Depends(get_db)):
+    like = Like(user_id=user_id, post_id=post_id)
+    db.add(like)
+    db.commit()
+    
+async def has_liked(user_id:int, post_id:int, db: Session = Depends(get_db))-> bool:
+    like = db.query(Like).filter_by(user_id=user_id, post_id=post_id).first()
+    if like:
+        return True
+    return False
+
+async def count_likes_for_post(db: Session, post_id: int):
+    return db.query(Like).filter_by(post_id=post_id).count()
+
+async def count_comments(post_id:int, db: Session = Depends(get_db)):
+    return db.query(Comment).filter_by(post_id=post_id).count()

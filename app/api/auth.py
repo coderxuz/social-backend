@@ -28,16 +28,16 @@ ALGORITHM = "HS256"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/authorize")
 
 
-def create_tokens(email: str) -> list[str]:
+def create_tokens(username: str) -> list[str]:
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRES_MINUTES)
     refresh_token_expires = timedelta(days=REFRESH_TOKEN_EXPIRES_DAYS)
     access_token = jwt.encode(
-        {"sub": email, "exp": datetime.utcnow() + access_token_expires},
+        {"sub": username, "exp": datetime.utcnow() + access_token_expires},
         SECRET_KEY,
         algorithm=ALGORITHM,
     )
     refresh_token = jwt.encode(
-        {"sub": email, "exp": datetime.utcnow() + refresh_token_expires},
+        {"sub": username, "exp": datetime.utcnow() + refresh_token_expires},
         SECRET_KEY,
         algorithm=ALGORITHM,
     )
@@ -75,7 +75,7 @@ async def create_user(user: SignUser, db: Session = Depends(get_db)):
         user_img=None,
     )
     db.add(new_user)
-    tokens = create_tokens(email=user.email)
+    tokens = create_tokens(username=user.username)
     access_token = tokens[0]
     refresh_token = tokens[1]
     db.commit()
@@ -93,7 +93,7 @@ async def login(user: Login, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="password incorrect"
         )
-    tokens = create_tokens(email=db_user.email)
+    tokens = create_tokens(username=user.username)
     access_token = tokens[0]
     refresh_token = tokens[1]
     return {

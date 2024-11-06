@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from app.api.auth import router as auth
+from app.api.image import router as image
+from app.api.posts import router as posts
 import uvicorn
 app = FastAPI()
 
@@ -42,5 +44,7 @@ async def read_root(request: Request):
     """.format(a=request.url.scheme,b=request.url.netloc)
     return HTMLResponse(content=template)
 app.include_router(auth)
+app.include_router(image)
+app.include_router(posts)
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="192.168.1.15", port=8000)
+    uvicorn.run("main:app", host="192.168.1.25", port=8000)
