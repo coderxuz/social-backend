@@ -48,5 +48,3 @@ app.include_router(auth)
 app.include_router(image)
 app.include_router(posts)
 app.include_router(following)
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="192.168.1.25", port=8000)
