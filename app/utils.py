@@ -26,6 +26,15 @@ def check_user_by_username(
             status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
         )
     return db_user
+async def check_user_by_id(
+    user_id: int, db: Session = Depends(get_db)
+) -> Optional[User]:
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
+        )
+    return db_user
 
 
 def get_token_from_header(request: Request) -> str:
@@ -71,15 +80,39 @@ async def like_post(user_id:int,post_id:int, db: Session = Depends(get_db)):
     like = Like(user_id=user_id, post_id=post_id)
     db.add(like)
     db.commit()
-    
+    return {'message':'liked'}
 async def has_liked(user_id:int, post_id:int, db: Session = Depends(get_db))-> bool:
     like = db.query(Like).filter_by(user_id=user_id, post_id=post_id).first()
     if like:
         return True
     return False
+async def unlike(user_id:int, post_id:int, db: Session = Depends(get_db)):
+    like = db.query(Like).filter(user_id == user_id, post_id == post_id).first()
+    if has_liked(user_id=user_id, post_id=post_id, db=db) and like:
+        db.delete(like)
+        db.commit()
+        return {'message':'unliked'}
 
 async def count_likes_for_post(db: Session, post_id: int):
     return db.query(Like).filter_by(post_id=post_id).count()
 
 async def count_comments(post_id:int, db: Session = Depends(get_db)):
     return db.query(Comment).filter_by(post_id=post_id).count()
+
+async def follow_user(current_user:User, user_for_following:User, db: Session = Depends(get_db)):
+    if user_for_following not in current_user.following:
+        current_user.following.append(user_for_following)
+        db.add(current_user)
+        db.commit()
+        return {'message': f'Successfully followed {user_for_following.username}'}
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='User already followed')
+
+async def unfollow(current_user:User, user_for_unfollowing:User, db: Session = Depends(get_db)):
+    if user_for_unfollowing in current_user.following:
+        current_user.following.remove(user_for_unfollowing)
+        db.add(current_user)
+        db.commit()
+        return {'message':f'Succesfully unfollowed {user_for_unfollowing}'}
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='User not followed')

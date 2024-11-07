@@ -12,7 +12,7 @@ from app.database import get_db
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from app.schemas import SignUser, Auth, Login, Reset
+from app.schemas import SignUser, Auth, Login, Reset, Message, Refresh
 import hashlib
 from app.models import User
 from app.utils import check_user_by_email, check_user_by_username, verify_token
@@ -104,14 +104,16 @@ async def login(user: Login, db: Session = Depends(get_db)):
 
 
 @router.get(
-    "/refresh", status_code=status.HTTP_200_OK, dependencies=[Depends(oauth2_scheme)]
+    "/refresh", status_code=status.HTTP_200_OK,response_model=Refresh, dependencies=[Depends(oauth2_scheme)]
 )
 async def refresh(request: Request):
     payload = verify_token(request)
     if payload:
         tokens = create_tokens(payload["sub"])
         access_token = tokens[0]
-        return {"access_token": access_token, "token_type": "bearer"}
+        
+        
+        return {"accessToken": access_token, "token_type": "bearer"}
 
 
 @router.post("/authorize")
@@ -123,7 +125,7 @@ async def authorize(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="password incorrect"
         )
-    tokens = create_tokens(email=db_user.email)
+    tokens = create_tokens(username=user.username)
     access_token = tokens[0]
     refresh_token = tokens[1]
     return {
@@ -133,7 +135,7 @@ async def authorize(
     }
 
 
-@router.post("/reset-pass")
+@router.post("/reset-pass", response_model=Message)
 async def reset(user: Reset, db: Session = Depends(get_db)):
     db_user = check_user_by_username(user_username=user.username, db=db)
     if user.code == 1234:

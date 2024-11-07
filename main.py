@@ -4,6 +4,7 @@ from fastapi.responses import HTMLResponse
 from app.api.auth import router as auth
 from app.api.image import router as image
 from app.api.posts import router as posts
+from app.api.followings import router as following
 import uvicorn
 app = FastAPI()
 
@@ -46,5 +47,6 @@ async def read_root(request: Request):
 app.include_router(auth)
 app.include_router(image)
 app.include_router(posts)
+app.include_router(following)
 if __name__ == "__main__":
     uvicorn.run("main:app", host="192.168.1.25", port=8000)

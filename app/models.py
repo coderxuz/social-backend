@@ -13,6 +13,11 @@ class Like (Base):
     user = relationship('User', back_populates='liked_posts')
     post = relationship('Post', back_populates='likers')
 
+class Follows(Base):
+    __tablename__ = 'follows'
+    follower_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
+    followed_user_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
+
 #Comment class    
 class Comment(Base):
     __tablename__ = 'comments'
@@ -40,7 +45,16 @@ class User(Base):
     post = relationship("Post", back_populates='user')
     liked_posts = relationship('Like', back_populates='user')
     comments = relationship("Comment", back_populates='user')
-
+    
+    following = relationship(
+        "User",
+        secondary='follows',
+        primaryjoin=id == Follows.follower_id,
+        secondaryjoin=id == Follows.followed_user_id,
+        backref='followers'
+    )
+    def __repr__(self):
+        return f"{self.username}"
 #Image class    
 class Image(Base):
     __tablename__ = 'image'
@@ -61,5 +75,19 @@ class Post(Base):
     image = relationship('Image', back_populates='post')
     likers = relationship('Like', back_populates='post')
     comments = relationship("Comment", back_populates='post')
+# user1 = User(
+#     first_name = 'John',
+#     email = 'john@gmail.com',
+#     password = 'john',
+#     username = 'john',
+# )
+# user2 = User(
+#     first_name = 'John2',
+#     email = 'john2@gmail.com',
+#     password = 'john2',
+#     username = 'john2',
+# )
+# user1.following.append(user2)
+
 if __name__ == '__main__':
     Base.metadata.create_all(bind=engine)

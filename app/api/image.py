@@ -13,7 +13,7 @@ router = APIRouter(prefix='/image', tags=['IMAGE'])
 @router.post('/', response_model=ImageResponse)
 async def image(file: UploadFile = File(...), db: Session = Depends(get_db)):
     file_path=await save_image(file=file)
-    new_image = Image(file_path = file_path)       
+    new_image = Image(file_path = file_path)          
     db.add(new_image)
     db.commit()
     return {'image_id':new_image.id}

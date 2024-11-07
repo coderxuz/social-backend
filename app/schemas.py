@@ -16,7 +16,7 @@ class Login(BaseModel):
     username:str
     password:str
 class Refresh(BaseModel):
-    access_token:str
+    accessToken:str
     token_typ:str='bearer'
 class Reset(BaseModel):
     username:str
@@ -32,8 +32,18 @@ class Message(BaseModel):
 class PostsGet(BaseModel):
     id: int
     image: Optional[str]
+    username:str
+    user_image:Optional[str]
     text: str   
     this_user: bool
     has_liked: bool
     likes: int
     comments: int
+class LikeUnlike(BaseModel):
+    post_id:int
+class Followings(BaseModel):
+    user_id:int
+class Followers(BaseModel):
+    id:int
+    username:str
+    user_image:str
