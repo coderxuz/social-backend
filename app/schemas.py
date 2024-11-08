@@ -1,3 +1,4 @@
+from builtins import int
 from pydantic import BaseModel, EmailStr
 from enum import Enum
 from typing import Optional
@@ -35,14 +36,14 @@ class PostsGet(BaseModel):
     username:str
     user_image:Optional[str]
     text: str   
-    this_user: bool
     has_liked: bool
+    has_followed:bool
     likes: int
     comments: int
 class LikeUnlike(BaseModel):
     post_id:int
 class Followings(BaseModel):
-    user_id:int
+    username:str
 class Followers(BaseModel):
     id:int
     username:str
