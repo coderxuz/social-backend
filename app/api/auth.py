@@ -169,7 +169,7 @@ async def users(db: Session = Depends(get_db)):
     for user in users:
         users_list.append(
             {
-                'username':user.username
+                'username':user.username,
             }
         )
     return users_list
