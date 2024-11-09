@@ -3,8 +3,6 @@ from fastapi import (
     APIRouter,
     HTTPException,
     status,
-    Header,
-    responses,
     Request,
     Depends,
 )

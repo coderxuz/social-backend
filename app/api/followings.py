@@ -21,26 +21,17 @@ async def follow(data:Followings,request:Request, db: Session= Depends(get_db)):
     following_user = check_user_by_username(data.username, db=db)
     following = await follow_user(current_user=db_user, user_for_following=following_user, db=db)
     return following
-@router.get('/followers', dependencies=[Depends(oauth2_scheme)])
+@router.get('/followers', dependencies=[Depends(oauth2_scheme)], response_model=list[Followers])
 async def followers(request:Request, db:Session= Depends(get_db)):
     db_user = await get_user_from_token(request=request, database=db)
     followers:list[User] = db_user.followers
     followers_list = []
     for user in followers:
-        if user.user_img:
             followers_list.append(
                 {
                     'id':user.id,
                     'username':user.username,
-                    'user_image':f"{request.url.scheme}://{request.url.netloc}/image/{user.user_img}",
-                }
-            )
-        else:
-            followers_list.append(
-                {
-                    'id':user.id,
-                    'username':user.username,
-                    'user_image':user.user_img
+                    'user_image':f"{request.url.scheme}://{request.url.netloc}/image/{user.user_img}" if user.user_img else None,
                 }
             )
     return followers_list

@@ -57,7 +57,7 @@ async def get_comments(id: int, request: Request, db: Session = Depends(get_db))
     return comments_list
 
 
-@router.delete("/{id}", dependencies=[Depends(oauth2_scheme)])
+@router.delete("/{id}", dependencies=[Depends(oauth2_scheme)], response_model=Message)
 async def del_comment(id: int, request: Request, db: Session = Depends(get_db)):
     db_user = await get_user_from_token(request=request, database=db)
     comment = db.query(Comment).filter(Comment.id == id).first()

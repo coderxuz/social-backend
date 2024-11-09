@@ -48,7 +48,7 @@ class Followings(BaseModel):
 class Followers(BaseModel):
     id:int
     username:str
-    user_image:str
+    user_image:Optional[str]
 class CommentData(BaseModel):
     content:str
     post_id:int
@@ -69,3 +69,8 @@ class Myself(BaseModel):
     followers:int
     followings:int
     user_img:Optional[str]
+
+class SearchResponse(BaseModel):
+    username:str
+    user_img:Optional[str]
+    has_followed:bool

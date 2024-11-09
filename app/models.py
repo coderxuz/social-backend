@@ -31,6 +31,18 @@ class Comment(Base):
     user = relationship('User', back_populates='comments')
     post = relationship('Post', back_populates='comments') 
 
+# Chat class
+class Chat(Base):
+    __tablename__ = 'chat'
+    
+    id = Column(Integer, primary_key=True)
+    message = Column(String, nullable=False)
+    sender_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    receiver_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    
+    sender = relationship('User', foreign_keys=[sender_id])
+    receiver = relationship('User', foreign_keys=[receiver_id])
+
 #User class
 class User(Base):
     __tablename__ = 'user'
