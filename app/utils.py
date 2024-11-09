@@ -132,3 +132,14 @@ async def has_followed(current_user:User, user_followed_id, db: Session= Depends
     if user_followed in current_user.following:
         return True
     return False
+
+async def new_comment(current_user:User, post:Post, content:str, database:Session = Depends(get_db)):
+    db_new_comment = Comment(
+        content=content,
+        user = current_user,
+        post = post
+    )
+    database.add(db_new_comment)
+    database.commit()
+    return {'message':'comment successfully uploaded'}
+

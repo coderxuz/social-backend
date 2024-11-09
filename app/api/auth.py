@@ -12,10 +12,10 @@ from app.database import get_db
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from app.schemas import SignUser, Auth, Login, Reset, Message, Refresh
+from app.schemas import SignUser, Auth, Login, Reset, Message, Refresh, Myself
 import hashlib
 from app.models import User
-from app.utils import check_user_by_email, check_user_by_username, verify_token
+from app.utils import check_user_by_username, verify_token, get_user_from_token
 from typing import Annotated
 
 router = APIRouter(prefix="/auth", tags=["AUTH"])
@@ -147,3 +147,29 @@ async def reset(user: Reset, db: Session = Depends(get_db)):
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST, detail="code incorrect"
     )
+@router.get('/me', dependencies=[Depends(oauth2_scheme)], response_model=Myself)
+async def myself(request:Request,db: Session = Depends(get_db)):
+    db_user = await get_user_from_token(request=request, database=db)
+    user_data = {
+        'id':db_user.id,
+        'first_name':db_user.first_name if db_user.first_name else None,
+        'last_name':db_user.last_name,
+        'email':db_user.email,
+        'username':db_user.username,
+        'followers':db_user.follower_count,
+        'followings':db_user.followings_count,
+        'user_img':f"{request.url.scheme}://{request.url.netloc}/image/{db_user.user_img}" if db_user.user_img else None
+    }
+    return user_data
+
+@router.get('/users')
+async def users(db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    users_list = []
+    for user in users:
+        users_list.append(
+            {
+                'username':user.username
+            }
+        )
+    return users_list

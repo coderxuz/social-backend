@@ -2,6 +2,7 @@ from builtins import int
 from pydantic import BaseModel, EmailStr
 from enum import Enum
 from typing import Optional
+from datetime import datetime
 
 class SignUser(BaseModel):
     first_name: str
@@ -48,3 +49,23 @@ class Followers(BaseModel):
     id:int
     username:str
     user_image:str
+class CommentData(BaseModel):
+    content:str
+    post_id:int
+class CommentGet(BaseModel):
+    id:int
+    content:str
+    this_user:bool
+    created_at:datetime
+    username:str
+    user_img:Optional[str]
+    has_followed:bool
+class Myself(BaseModel):
+    id:int
+    first_name: str
+    last_name: Optional[str]
+    email: EmailStr
+    username:str
+    followers:int
+    followings:int
+    user_img:Optional[str]

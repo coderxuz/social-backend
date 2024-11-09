@@ -55,6 +55,12 @@ class User(Base):
     )
     def __repr__(self):
         return f"{self.username}"
+    @property
+    def follower_count(self):
+        return len(self.followers)
+    @property
+    def followings_count(self):
+        return len(self.following)
 #Image class    
 class Image(Base):
     __tablename__ = 'image'
