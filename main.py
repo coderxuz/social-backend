@@ -6,6 +6,7 @@ from app.api.image import router as image
 from app.api.posts import router as posts
 from app.api.followings import router as following
 from app.api.comments import router as comments
+from app.api.search import router as search
 import uvicorn
 app = FastAPI()
 
@@ -50,3 +51,4 @@ app.include_router(image)
 app.include_router(posts)
 app.include_router(following)
 app.include_router(comments)
+app.include_router(search)
