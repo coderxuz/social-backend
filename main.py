@@ -7,6 +7,7 @@ from app.api.posts import router as posts
 from app.api.followings import router as following
 from app.api.comments import router as comments
 from app.api.search import router as search
+from app.api.chat import router as chat
 import uvicorn
 app = FastAPI()
 
@@ -52,3 +53,4 @@ app.include_router(posts)
 app.include_router(following)
 app.include_router(comments)
 app.include_router(search)
+app.include_router(chat)

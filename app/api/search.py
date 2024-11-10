@@ -10,7 +10,7 @@ router = APIRouter(prefix="/search", tags=["SEARCH"])
 
 
 @router.get(
-    "", dependencies=[Depends(oauth2_scheme)], response_model=list[SearchResponse]
+    "", dependencies=[Depends(oauth2_scheme)], response_model=list[SearchResponse],operation_id="search_func_1"
 )
 async def search(
     request: Request,

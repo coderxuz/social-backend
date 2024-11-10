@@ -39,6 +39,7 @@ class Chat(Base):
     message = Column(String, nullable=False)
     sender_id = Column(Integer, ForeignKey('user.id'), nullable=False)
     receiver_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     
     sender = relationship('User', foreign_keys=[sender_id])
     receiver = relationship('User', foreign_keys=[receiver_id])

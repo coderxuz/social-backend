@@ -1,10 +1,13 @@
 from builtins import int
 from fastapi import HTTPException, status, Request, Depends, UploadFile
-from app.database import get_db
+from app.database import get_db, get_async_db
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from app.models import User, Post, Like, Comment
 from typing import Optional, Dict, Any
-from jose import jwt, JWTError
+from jose import jwt, JWTError, ExpiredSignatureError
+from app.config import SECRET_KEY, ALGORITHM
 import os
 
 def check_user_by_email(
@@ -22,6 +25,16 @@ def check_user_by_username(
     user_username: str, db: Session = Depends(get_db)
 ) -> Optional[User]:
     db_user = db.query(User).filter(User.username == user_username).first()
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="user2 not found"
+        )
+    return db_user
+async def check_user_web_by_username(
+    user_username: str, db: AsyncSession
+) -> Optional[User]:
+    result = await db.execute(select(User).filter(User.username == user_username))
+    db_user = result.scalar_one_or_none()
     if not db_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="user2 not found"
@@ -57,6 +70,15 @@ def verify_token(request: Request)->Optional[Dict[str, Any]]:
         return payload
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='wrong or expired token')
+    
+def verify_web_token(token:str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, ALGORITHM)
+        return payload
+    except ExpiredSignatureError:
+        raise ExpiredSignatureError('Token has expired')
+    except JWTError as e:
+        raise JWTError('Invalid token')
 
 async def save_image(file:UploadFile)->Optional[str]:
     save_folder = 'images'
@@ -75,6 +97,19 @@ async def get_user_from_token(request: Request, database:Session = Depends(get_d
     payload = verify_token(request)
     username = payload['sub']
     db_user = check_user_by_username(user_username=username, db=database)
+    return db_user
+
+async def get_user_from_web_token(token:str, database:AsyncSession=Depends(get_async_db)):
+    try:
+        payload = verify_web_token(token=token)
+    except ExpiredSignatureError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='wrong or expired token') 
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Token has expired')
+    username = payload.get('sub')
+    if not username:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid token structure')
+    db_user = await check_user_web_by_username(user_username=username, db=database)
     return db_user
 
 async def like_post(user_id:int,post_id:int, db: Session = Depends(get_db)):

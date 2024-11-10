@@ -35,7 +35,7 @@ async def followers(request:Request, db:Session= Depends(get_db)):
                 }
             )
     return followers_list
-@router.post('/unfollow')
+@router.post('/unfollow', dependencies=[Depends(get_db)], response_model=Message)
 async def unfollowing(data:Followings,request:Request, db: Session= Depends(get_db)):
     db_user = await get_user_from_token(request=request, database=db)
     user_unfollow = check_user_by_username(user_username=data.username, db=db)

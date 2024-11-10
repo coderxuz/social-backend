@@ -16,14 +16,12 @@ import hashlib
 from app.models import User
 from app.utils import check_user_by_username, verify_token, get_user_from_token
 from typing import Annotated
-
+from app.config import SECRET_KEY, ALGORITHM
 router = APIRouter(prefix="/auth", tags=["AUTH"])
 
-SECRET_KEY = "fe89708897e427a05eb58670e36d9fbfc7da76266081cc62c0064f347dd1e5c7"
 
 ACCESS_TOKEN_EXPIRES_MINUTES = 30
 REFRESH_TOKEN_EXPIRES_DAYS = 1
-ALGORITHM = "HS256"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/authorize")
 
 

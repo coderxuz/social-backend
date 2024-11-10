@@ -74,3 +74,8 @@ class SearchResponse(BaseModel):
     username:str
     user_img:Optional[str]
     has_followed:bool
+
+class ChatValid(BaseModel):
+    receiver:str
+    sender:str
+    text:str
