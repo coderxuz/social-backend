@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.utils import save_image, get_user_from_token
 from app.api.auth import oauth2_scheme
 from app.models import Image
-from app.schemas import ImageResponse
+from app.schemas import ImageResponse, ImageUser
 from pathlib import Path
 from fastapi.responses import FileResponse
 
@@ -28,13 +28,16 @@ async def image(id:int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Image not found on the server")
     return FileResponse(image_path)
 
-@router.post('/', response_model=ImageResponse)
+@router.post('/user', response_model=ImageUser)
 async def image(request:Request,file: UploadFile = File(...), db: Session = Depends(get_db)):
     db_user = await get_user_from_token(request=request, database=db)
+    print(db_user.username)
     file_path=await save_image(file=file)
     new_image = Image(file_path = file_path)          
     db.add(new_image)
-    db_user.user_img = new_image.id
-    db.refresh(db_user)
     db.commit()
-    return {'image_id':new_image.id}
+    db.refresh(new_image)
+    db_user.user_img = new_image.id
+    db.commit()
+    user_image_url = f"{request.url.scheme}://{request.url.netloc}/image/{db_user.user_img}"
+    return {'user_image': user_image_url}

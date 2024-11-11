@@ -27,7 +27,7 @@ async def post(post:PostCreate,request:Request,db:Session = Depends(get_db)):
     db.commit()
     return {'message':'post successfully created'}
 
-@router.get('/',dependencies=[Depends(oauth2_scheme)], response_model=List[PostsGet])
+@router.get('',dependencies=[Depends(oauth2_scheme)], response_model=List[PostsGet])
 async def posts(request:Request, db: Session = Depends(get_db)):
     db_user = await get_user_from_token(request=request, database=db) 
     random_posts = (

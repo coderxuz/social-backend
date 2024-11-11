@@ -1,11 +1,4 @@
-
-from fastapi import (
-    APIRouter,
-    HTTPException,
-    status,
-    Request,
-    Depends,
-)
+from fastapi import APIRouter, HTTPException, status, Request, Depends, Query
 from datetime import timedelta, datetime
 from app.database import get_db
 from jose import JWTError, jwt
@@ -14,9 +7,15 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from app.schemas import SignUser, Auth, Login, Reset, Message, Refresh, Myself
 import hashlib
 from app.models import User
-from app.utils import check_user_by_username, verify_token, get_user_from_token
+from app.utils import (
+    check_user_by_username,
+    verify_token,
+    get_user_from_token,
+    has_followed,
+)
 from typing import Annotated
 from app.config import SECRET_KEY, ALGORITHM
+
 router = APIRouter(prefix="/auth", tags=["AUTH"])
 
 
@@ -101,15 +100,17 @@ async def login(user: Login, db: Session = Depends(get_db)):
 
 
 @router.get(
-    "/refresh", status_code=status.HTTP_200_OK,response_model=Refresh, dependencies=[Depends(oauth2_scheme)]
+    "/refresh",
+    status_code=status.HTTP_200_OK,
+    response_model=Refresh,
+    dependencies=[Depends(oauth2_scheme)],
 )
 async def refresh(request: Request):
     payload = verify_token(request)
     if payload:
         tokens = create_tokens(payload["sub"])
         access_token = tokens[0]
-        
-        
+
         return {"accessToken": access_token, "token_type": "bearer"}
 
 
@@ -140,33 +141,70 @@ async def reset(user: Reset, db: Session = Depends(get_db)):
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
-        return {'message':'password successfully changed'}
+        return {"message": "password successfully changed"}
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST, detail="code incorrect"
     )
-@router.get('/me', dependencies=[Depends(oauth2_scheme)], response_model=Myself)
-async def myself(request:Request,db: Session = Depends(get_db)):
+
+
+@router.get("/me", dependencies=[Depends(oauth2_scheme)], response_model=Myself)
+async def myself(request: Request, db: Session = Depends(get_db)):
     db_user = await get_user_from_token(request=request, database=db)
     user_data = {
-        'id':db_user.id,
-        'first_name':db_user.first_name if db_user.first_name else None,
-        'last_name':db_user.last_name,
-        'email':db_user.email,
-        'username':db_user.username,
-        'followers':db_user.follower_count,
-        'followings':db_user.followings_count,
-        'user_img':f"{request.url.scheme}://{request.url.netloc}/image/{db_user.user_img}" if db_user.user_img else None
+        "id": db_user.id,
+        "first_name": db_user.first_name if db_user.first_name else None,
+        "last_name": db_user.last_name,
+        "email": db_user.email,
+        "username": db_user.username,
+        "followers": db_user.follower_count,
+        "followings": db_user.followings_count,
+        "user_img": (
+            f"{request.url.scheme}://{request.url.netloc}/image/{db_user.user_img}"
+            if db_user.user_img
+            else None
+        ),
     }
     return user_data
 
-@router.get('/users')
+
+@router.get("/user", dependencies=[Depends(oauth2_scheme)])
+async def myself(
+    request: Request,
+    username: str = Query(..., description="Write username"),
+    db: Session = Depends(get_db),
+):
+    db_user = await get_user_from_token(request=request, database=db)
+    users = db.query(User).filter(User.username.ilike(f"%{username}%")).all()
+    users_list = []
+    for user in users:
+        user_data = {
+            "first_name": user.first_name if user.first_name else None,
+            "last_name": user.last_name,
+            "email": user.email,
+            "username": user.username,
+            "followers": user.follower_count,
+            "followings": user.followings_count,
+            "user_img": (
+                f"{request.url.scheme}://{request.url.netloc}/image/{user.user_img}"
+                if user.user_img
+                else None
+            ),
+            "has_followed": await has_followed(
+                current_user=db_user, user_followed_id=user.id, db=db
+            ),
+        }
+        users_list.append(user_data)
+    return users_list
+
+
+@router.get("/users")
 async def users(db: Session = Depends(get_db)):
     users = db.query(User).all()
     users_list = []
     for user in users:
         users_list.append(
             {
-                'username':user.username,
+                "username": user.username,
             }
         )
     return users_list

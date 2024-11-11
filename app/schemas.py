@@ -26,6 +26,8 @@ class Reset(BaseModel):
     new_pass:str    
 class ImageResponse(BaseModel):
     image_id:int
+class ImageUser(BaseModel):
+    user_image:str
 class PostCreate(BaseModel):
     text:str
     image_id:Optional[int]

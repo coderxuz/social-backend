@@ -53,11 +53,12 @@ class User(Base):
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
     username = Column(String, nullable=False, unique=True)
-    user_img = Column(Integer)
+    user_img = Column(Integer, ForeignKey('image.id'))
     
     post = relationship("Post", back_populates='user')
     liked_posts = relationship('Like', back_populates='user')
     comments = relationship("Comment", back_populates='user')
+    img = relationship('Image', back_populates='user')
     
     following = relationship(
         "User",
@@ -81,7 +82,7 @@ class Image(Base):
     file_path = Column(String)
     
     post = relationship('Post', back_populates='image')
-    
+    user = relationship("User", back_populates='img')
 #Post class
 class Post(Base):
     __tablename__ = 'posts'
