@@ -2,9 +2,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
-DB_URL = "postgresql+psycopg2://postgres:coderxuz@localhost/learn"
+# DB_URL = "postgresql+psycopg2://postgres:coderxuz@localhost/learn"
 ASYNC_DB_URL = "postgresql+asyncpg://postgres:coderxuz@localhost/learn"
-# DB_URL= "sqlite:///database.db"
+DB_URL= "sqlite:///database.db"
 engine = create_engine(DB_URL)
 async_engine = create_async_engine(ASYNC_DB_URL)
 
