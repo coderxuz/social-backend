@@ -40,7 +40,7 @@ async def get_comments(id: int, request: Request, db: Session = Depends(get_db))
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="post not found"
         )
-    comments = db.query(Comment).filter(Comment.post_id == db_post.id).all()
+    comments = db.query(Comment).filter(Comment.post_id == db_post.id).order_by(Comment.created_at.desc()).all()
     comments_list = []
     for comment in comments:
         comments_list.append(
