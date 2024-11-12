@@ -4,7 +4,7 @@ from app.database import get_db
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from app.schemas import SignUser, Auth, Login, Reset, Message, Refresh, Myself
+from app.schemas import SignUser, Auth, Login, Reset, Message, Refresh, Myself, UserGet
 import hashlib
 from app.models import User
 from app.utils import (
@@ -152,8 +152,8 @@ async def myself(request: Request, db: Session = Depends(get_db)):
     db_user = await get_user_from_token(request=request, database=db)
     user_data = {
         "id": db_user.id,
-        "first_name": db_user.first_name if db_user.first_name else None,
-        "last_name": db_user.last_name,
+        "first_name": db_user.first_name,
+        "last_name": db_user.last_name if db_user.last_name else None,
         "email": db_user.email,
         "username": db_user.username,
         "followers": db_user.follower_count,
@@ -167,7 +167,7 @@ async def myself(request: Request, db: Session = Depends(get_db)):
     return user_data
 
 
-@router.get("/user", dependencies=[Depends(oauth2_scheme)])
+@router.get("/user", dependencies=[Depends(oauth2_scheme)], response_model=list[UserGet])
 async def myself(
     request: Request,
     username: str = Query(..., description="Write username"),
@@ -178,8 +178,8 @@ async def myself(
     users_list = []
     for user in users:
         user_data = {
-            "first_name": user.first_name if user.first_name else None,
-            "last_name": user.last_name,
+            "first_name": user.first_name,
+            "last_name": db_user.last_name if db_user.last_name else None,
             "email": user.email,
             "username": user.username,
             "followers": user.follower_count,

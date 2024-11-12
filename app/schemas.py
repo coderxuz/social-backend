@@ -72,6 +72,17 @@ class Myself(BaseModel):
     followings:int
     user_img:Optional[str]
 
+
+class UserGet(BaseModel):
+    first_name: str
+    last_name: Optional[str]
+    email: EmailStr
+    username:str
+    followers:int
+    followings:int
+    user_img:Optional[str]
+    has_followed:bool
+    
 class SearchResponse(BaseModel):
     username:str
     user_img:Optional[str]
